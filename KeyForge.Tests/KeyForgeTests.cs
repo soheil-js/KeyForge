@@ -17,7 +17,7 @@ namespace KeyForge.Tests
         {
             string key = KeyGenerator.Create(secretBytes);
             Assert.False(string.IsNullOrWhiteSpace(key));
-            Assert.Equal(5, key.Split('-').Length); // 4 parts + checksum
+            Assert.Equal(4, key.Split('-').Length);
         }
 
         [Fact]

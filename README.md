@@ -27,6 +27,7 @@ namespace KeyForge
 {
     public static class KeyGenerator
     {
+        public static byte[] GetRandomSecret();
         public static string Create(ReadOnlySpan<byte> secret);
         public static bool Validate(string deviceKey, ReadOnlySpan<byte> secret);
     }
@@ -40,33 +41,33 @@ namespace KeyForge
 ## 🧩 Usage Example
 
 ```csharp
-using System;
-using System.Text;
 using KeyForge;
+using System.Security.Cryptography;
 
 class Program
 {
     static void Main()
     {
         // Secret key shared between generator and validator
-        byte[] secretBytes = new byte[32];
-        RandomNumberGenerator.Fill(secretBytes);
-
+        var secret = KeyGenerator.GetRandomSecret().AsSpan();
+        
         // Generate a new API key
-        string key = KeyGenerator.Create(secretBytes);
+        string key = KeyGenerator.Create(secret);
         Console.WriteLine($"Generated Key: {key}");
 
         // Validate the generated key
-        bool isValid = KeyGenerator.Validate(key, secretBytes);
-        Console.WriteLine($"Is Valid: {isValid}");
+        bool isVerified = KeyGenerator.Validate(key, secret);
+        Console.WriteLine($"Verification Result: {isVerified}");
+
+        CryptographicOperations.ZeroMemory(secret);
     }
 }
 ```
 
 **Sample output:**
 ```
-Generated Key: 3K8N-5W9L-F7PQ-9ZXT-4F5E1A2B3C4D5E6F
-Is Valid: True
+Generated Key: 35XAUXWG-01ZVECH5-D095D63E-CF50C65D
+Verification Result: True
 ```
 
 ## 🛡 Security Recommendations

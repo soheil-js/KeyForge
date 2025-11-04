@@ -6,15 +6,18 @@ namespace KeyForge
 {
     internal static class Utils
     {
-        private const string charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        private const string _charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        private const int _chunkSize = 8;
+        private const int _baseKeyLength = 16;
+        private const int _checksumLength = 16;
 
         public static char[] GetRandomBaseKey()
         {
-            byte[] buffer = new byte[16];
+            byte[] buffer = new byte[_baseKeyLength];
             RandomNumberGenerator.Fill(buffer);
-            char[] baseKey = new char[16];
+            char[] baseKey = new char[_baseKeyLength];
             for (int i = 0; i < baseKey.Length; i++)
-                baseKey[i] = charset[buffer[i] % charset.Length];
+                baseKey[i] = _charset[buffer[i] % _charset.Length];
             return baseKey;
         }
 
@@ -22,12 +25,12 @@ namespace KeyForge
         {
             var hmac = MacAlgorithm.HmacSha256;
 
-            if (secret.Length < hmac.KeySize)
-                throw new ArgumentException($"Secret must be at least {hmac.KeySize} bytes long.");
+            if (secret.Length != hmac.KeySize)
+                throw new ArgumentException($"The secret must be {hmac.KeySize} bytes long.");
 
-            using var k = Key.Import(hmac, secret, KeyBlobFormat.RawSymmetricKey);
-            byte[] hash = hmac.Mac(k, Encoding.UTF8.GetBytes(new string(key)));
-            return BitConverter.ToUInt64(hash, 0);
+            using Key k = Key.Import(hmac, secret, KeyBlobFormat.RawSymmetricKey);
+            Span<byte> hash = hmac.Mac(k, Encoding.UTF8.GetBytes(new string(key)));
+            return BitConverter.ToUInt64(hash[..8].ToArray(), 0);
         }
 
         public static string GenerateKey(char[] baseKey, ulong checksum)
@@ -36,10 +39,18 @@ namespace KeyForge
             for (int i = 0; i < baseKey.Length; i++)
             {
                 keyBuilder.Append(baseKey[i]);
-                if ((i + 1) % 4 == 0 && i != baseKey.Length - 1)
+                if ((i + 1) % _chunkSize == 0 && i != baseKey.Length - 1)
                     keyBuilder.Append('-');
             }
-            keyBuilder.AppendFormat("-{0:X16}", checksum);
+
+            keyBuilder.Append('-');
+            string checksumHex = checksum.ToString("X16");
+            for (int j = 0; j < checksumHex.Length; j++)
+            {
+                keyBuilder.Append(checksumHex[j]);
+                if ((j + 1) % _chunkSize == 0 && j != checksumHex.Length - 1)
+                    keyBuilder.Append('-');
+            }
             return keyBuilder.ToString();
         }
 
@@ -47,20 +58,34 @@ namespace KeyForge
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(deviceKey)) return false;
+                if (string.IsNullOrWhiteSpace(deviceKey) || !deviceKey.Contains("-"))
+                    return false;
 
                 deviceKey = deviceKey.Trim().ToUpperInvariant();
 
                 var parts = deviceKey.Split('-');
-                if (parts.Length != 5) return false;
-
-                string baseKey = string.Concat(parts[0], parts[1], parts[2], parts[3]);
-                if (baseKey.Length != 16) return false;
-
-                if (!ulong.TryParse(parts[4], System.Globalization.NumberStyles.HexNumber, null, out ulong providedChecksum))
+                const int totalLength = _baseKeyLength + _checksumLength;
+                if (parts.Length != (totalLength / _chunkSize))
                     return false;
 
-                ulong expectedChecksum = CalculateSecureChecksum(baseKey.ToCharArray(), secret);
+                StringBuilder baseKeyBuilder = new StringBuilder();
+                StringBuilder checksumBuilder = new StringBuilder();
+
+                for (var i = 0; i < parts.Length; i++)
+                {
+                    if (i < (_baseKeyLength / _chunkSize))
+                        baseKeyBuilder.Append(parts[i]);
+                    else
+                        checksumBuilder.Append(parts[i]);
+                }
+
+                if (baseKeyBuilder.Length != _baseKeyLength || checksumBuilder.Length != _checksumLength)
+                    return false;
+
+                if (!ulong.TryParse(checksumBuilder.ToString(), System.Globalization.NumberStyles.HexNumber, null, out ulong providedChecksum))
+                    return false;
+
+                ulong expectedChecksum = CalculateSecureChecksum(baseKeyBuilder.ToString().ToCharArray(), secret);
 
                 var expectedBytes = BitConverter.GetBytes(expectedChecksum);
                 var providedBytes = BitConverter.GetBytes(providedChecksum);
