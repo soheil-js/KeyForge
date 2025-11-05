@@ -16,7 +16,6 @@ KeyForge securely creates and validates device keys using a shared secret and cr
 
 ```csharp
 using KeyForge;
-using System.Security.Cryptography;
 
 class Program
 {
