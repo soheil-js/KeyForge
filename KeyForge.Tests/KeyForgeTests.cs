@@ -5,17 +5,12 @@ namespace KeyForge.Tests
 {
     public class KeyForgeTests
     {
-        private readonly byte[] secretBytes = new byte[32];
-
-        public KeyForgeTests()
-        {
-            RandomNumberGenerator.Fill(secretBytes);
-        }
+        private readonly SecretKey secretKey = SecretKey.CreateRandom();
 
         [Fact]
         public void Create_ShouldReturnNonEmptyKey()
         {
-            string key = KeyGenerator.Create(secretBytes);
+            string key = KeyGenerator.Create(secretKey.AsSpan());
             Assert.False(string.IsNullOrWhiteSpace(key));
             Assert.Equal(4, key.Split('-').Length);
         }
@@ -23,28 +18,28 @@ namespace KeyForge.Tests
         [Fact]
         public void Validate_ShouldReturnTrueForGeneratedKey()
         {
-            string key = KeyGenerator.Create(secretBytes);
-            bool result = KeyGenerator.Validate(key, secretBytes);
+            string key = KeyGenerator.Create(secretKey.AsSpan());
+            bool result = KeyGenerator.Validate(key, secretKey.AsSpan());
             Assert.True(result);
         }
 
         [Fact]
         public void Validate_ShouldReturnFalseForModifiedKey()
         {
-            string key = KeyGenerator.Create(secretBytes);
+            string key = KeyGenerator.Create(secretKey.AsSpan());
 
             char[] chars = key.ToCharArray();
             chars[chars.Length - 1] = chars[chars.Length - 1] != 'A' ? 'A' : 'B';
             string modifiedKey = new string(chars);
 
-            bool result = KeyGenerator.Validate(modifiedKey, secretBytes);
+            bool result = KeyGenerator.Validate(modifiedKey, secretKey.AsSpan());
             Assert.False(result);
         }
 
         [Fact]
         public void Validate_ShouldReturnFalseForWrongSecret()
         {
-            string key = KeyGenerator.Create(secretBytes);
+            string key = KeyGenerator.Create(secretKey.AsSpan());
 
             byte[] wrongSecret = new byte[32];
             RandomNumberGenerator.Fill(wrongSecret);
@@ -56,11 +51,11 @@ namespace KeyForge.Tests
         public void Validate_ShouldReturnFalseForMalformedKey()
         {
             string malformedKey = "1234-5678-ABCD";
-            bool result = KeyGenerator.Validate(malformedKey, secretBytes);
+            bool result = KeyGenerator.Validate(malformedKey, secretKey.AsSpan());
             Assert.False(result);
 
             string emptyKey = "";
-            Assert.False(KeyGenerator.Validate(emptyKey, secretBytes));
+            Assert.False(KeyGenerator.Validate(emptyKey, secretKey.AsSpan()));
         }
 
         [Fact]
