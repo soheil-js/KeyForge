@@ -1,17 +1,19 @@
 ﻿using KeyForge;
-using System.Security.Cryptography;
+
+Console.Title = "KeyForge Example";
 
 while (true)
 {
     // Secret key shared between generator and validator
-    using SecretKey secretKey = SecretKey.CreateRandom();
+    using Secret secretKey = SecretFactory.CreateRandom();
+    var generator = secretKey.GetKeyGenerator();
 
     // Generate a new API key
-    string key = KeyGenerator.Create(secretKey.AsSpan());
+    string key = generator.GenerateKey();
     Console.WriteLine($"Generated Key: {key}");
 
     // Validate the generated key
-    bool isVerified = KeyGenerator.Validate(key, secretKey.AsSpan());
+    bool isVerified = generator.ValidateKey(key);
     Console.WriteLine($"Verification Result: {isVerified}");
 
     Console.ReadKey();
