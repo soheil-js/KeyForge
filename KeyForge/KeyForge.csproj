@@ -4,7 +4,25 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Version>1.0</Version>
+	<PackageReadmeFile></PackageReadmeFile>
+	<Authors>soheil-js</Authors>
+	<Company>MVSoft</Company>
+	<Description>KeyForge is a lightweight and secure library for generating and validating API keys, helping you create and verify unique keys with ease.</Description>
+	<PackageProjectUrl>https://github.com/soheil-js</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/soheil-js/KeyForge</RepositoryUrl>
+	<RepositoryType>Git</RepositoryType>
+	<PackageTags>api,key,license,keygen</PackageTags>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NSec.Cryptography" Version="25.4.0" />
