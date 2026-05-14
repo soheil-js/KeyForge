@@ -1,16 +1,6 @@
 # KeyForge
 
-**KeyForge** is a lightweight, secure, and self-contained API key generation and validation library for .NET, written in C#.  
-It provides a simple, safe public API for creating and verifying tamper-resistant keys suitable for authentication, licensing, or device provisioning systems.
-
-## ✅ Features
-KeyForge securely creates and validates device keys using a shared secret and cryptographic checksum.
-
-- Secure random key generation
-- HMAC-SHA256 integrity verification
-- Constant-time validation
-- Memory zeroization for secrets
-- Simple, high-level API
+**KeyForge** is a lightweight and secure library for generating and validating API keys, helping you create and verify unique keys with ease.
 
 ## 🧩 Usage Example
 
@@ -22,14 +12,15 @@ class Program
     static void Main()
     {
         // Secret key shared between generator and validator
-        using SecretKey secretKey = SecretKey.CreateRandom();
+        using Secret secretKey = SecretFactory.CreateRandom();
+        var generator = secretKey.GetKeyGenerator();
         
         // Generate a new API key
-        string key = KeyGenerator.Create(secretKey.AsSpan());
+        string key = generator.GenerateKey();
         Console.WriteLine($"Generated Key: {key}");
-
+        
         // Validate the generated key
-        bool isVerified = KeyGenerator.Validate(key, secretKey.AsSpan());
+        bool isVerified = generator.ValidateKey(key);
         Console.WriteLine($"Verification Result: {isVerified}");
     }
 }
