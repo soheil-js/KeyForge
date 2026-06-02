@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Security.Cryptography;
 
 namespace KeyForge
 {
     public class Secret : IDisposable
     {
-        private byte[] _data;
+        private byte[] _secret;
         private bool _disposed;
 
-        public Secret(byte[] data)
+        public Secret(byte[] secret)
         {
-            _data = data;
+            _secret = secret;
         }
 
         /// <summary>
@@ -27,7 +24,7 @@ namespace KeyForge
         public ReadOnlySpan<byte> GetBytes()
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            return _data;
+            return _secret;
         }
 
         /// <summary>
@@ -36,9 +33,9 @@ namespace KeyForge
         /// </summary>
         public void Dispose()
         {
-            if (!_disposed && _data != null)
+            if (!_disposed && _secret != null)
             {
-                CryptographicOperations.ZeroMemory(_data);
+                CryptographicOperations.ZeroMemory(_secret);
                 _disposed = true;
             }
         }
