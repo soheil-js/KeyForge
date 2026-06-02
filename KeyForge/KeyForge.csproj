@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<Version>1.1.0</Version>
-	<PackageReadmeFile></PackageReadmeFile>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<Authors>soheil-js</Authors>
 	<Company>MVSoft</Company>
 	<Description>KeyForge is a lightweight and secure library for generating and validating API keys, helping you create and verify unique keys with ease.</Description>
@@ -19,6 +19,10 @@
 
   <ItemGroup>
     <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
